@@ -36,7 +36,7 @@ end
 
 ---@class Problem
 ---@field races Race[]
-Problem = {}
+local Problem = {}
 function Problem:__tostring()
   local s = ""
   local sep = ""
