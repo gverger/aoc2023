@@ -155,13 +155,73 @@ function Map:__tostring()
 end
 
 ---@param map Map
-function loop_length(map)
+---@return table<Coords,boolean>
+local function in_the_loop(map)
+  local current = map:find("S")
+
+  local visited = {}
+  setmetatable(visited, CoordTable)
+
+  while current do
+    local neighbours = current:neighbours(map)
+    visited[current] = true
+    current = nil
+    for _, n in pairs(neighbours) do
+      if not visited[n] then
+        current = n
+      end
+    end
+  end
+  return visited
+end
+
+---@param map Map
+---@param pipe Pipe
+local function hidden_letter(map, pipe)
+  local n = pipe:neighbours(map)
+
+  local left = tables.any(n, function(p) return p.x == pipe.x - 1 end)
+  local right = tables.any(n, function(p) return p.x == pipe.x + 1 end)
+  local up = tables.any(n, function(p) return p.y == pipe.y - 1 end)
+  local down = tables.any(n, function(p) return p.y == pipe.y + 1 end)
+
+  if left and right then return "-" end
+  if left and up then return "J" end
+  if left and down then return "7" end
+  if up and right then return "L" end
+  if up and down then return "|" end
+  if down and right then return "F" end
+
+  return "#"
+end
+
+local function clean_map(map)
+  local in_loop = in_the_loop(map)
+
+  local m2 = Map:new {}
+
+  for _, p in pairs(map.pipes) do
+    if in_loop[p] then
+      if p.letter == "S" then
+        m2:add(Pipe:new { letter = hidden_letter(map, p), x = p.x, y = p.y })
+      else
+        m2:add(p)
+      end
+    else
+      m2:add(Pipe:new { letter = ".", x = p.x, y = p.y })
+    end
+  end
+
+  return m2
+end
+
+---@param map Map
+local function loop_length(map)
   local current = map:find("S")
 
   local length = 0
   local visited = {}
   setmetatable(visited, CoordTable)
-
 
   while current do
     local neighbours = current:neighbours(map)
@@ -175,6 +235,70 @@ function loop_length(map)
     end
   end
   return length
+end
+
+
+---@param map Map
+local function in_out(map, y)
+  local res = {}
+  local is_in = false
+  local last_pipe = nil
+  for x = 1, map.x_max do
+    local pipe = map:at { x = x, y = y }
+    if pipe.letter == "." then
+      table.insert(res, is_in)
+      goto continue
+    end
+    table.insert(res, false) -- on a pipe
+    if pipe.letter == "|" then
+      is_in = not is_in
+    end
+    if pipe.letter == "F" then
+      if last_pipe ~= nil then print("error") end
+      last_pipe = "bottom"
+    end
+    if pipe.letter == "L" then
+      if last_pipe ~= nil then print("error") end
+      last_pipe = "top"
+    end
+
+    if pipe.letter == "7" then
+      if last_pipe == nil then print("error") end
+      if last_pipe == "top" then
+        is_in = not is_in
+      end
+      last_pipe = nil
+    end
+
+    if pipe.letter == "J" then
+      if last_pipe == nil then print("error") end
+      if last_pipe == "bottom" then
+        is_in = not is_in
+      end
+      last_pipe = nil
+    end
+
+    ::continue::
+  end
+
+  return res
+end
+
+local function draw_in_out(map)
+  local number_in = 0
+  for j = 1, map.y_max do
+    local ins = in_out(map, j)
+    for i, is_in in pairs(ins) do
+      if is_in then
+        local p = map:at { x = i, y = j }
+        p.letter = "I"
+        number_in = number_in + 1
+      end
+    end
+  end
+
+  print(map)
+  print("In = " .. number_in)
 end
 
 local function run(inputfile)
@@ -196,6 +320,9 @@ local function run(inputfile)
   print(map)
   print("Length = " .. loop_length(map))
   print("Farthest = " .. loop_length(map) / 2)
+
+  local m = clean_map(map)
+  draw_in_out(m)
 end
 
 --------------------------------------------------------------------------
@@ -209,8 +336,8 @@ function test.all()
 end
 
 test.all()
--- run("part1.txt")
--- run("part2.txt")
--- run("input.txt")
-
+run("part1.txt")
+run("part2.txt")
+run("part3.txt")
 run("part4.txt")
+run("input.txt")
