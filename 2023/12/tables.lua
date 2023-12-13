@@ -17,16 +17,20 @@ function M.dump(o)
       return '[]'
     end
     local s = '[ '
+    local sep = ""
     for _, v in pairs(o) do
-      s = s .. M.dump(v) .. ','
+      s = s .. sep .. M.dump(v)
+      sep = ', '
     end
     return s .. ']'
   end
 
   local s = '{ '
+  local sep = ""
   for k, v in pairs(o) do
     if type(k) ~= 'number' then k = '"' .. k .. '"' end
-    s = s .. '[' .. k .. '] = ' .. M.dump(v) .. ','
+    s = s .. sep .. '[' .. k .. '] = ' .. M.dump(v)
+    sep = ', '
   end
   return s .. '}'
 end
@@ -94,6 +98,14 @@ function M.max(tbl, default)
     end
   end
   return m
+end
+
+function M.length(tbl)
+  local count = 0
+  for _ in pairs(tbl) do
+    count = count + 1
+  end
+  return count
 end
 
 ---count the number of filtered elements in the table
@@ -209,13 +221,13 @@ function M.join(tbl, sep)
   end
   local separator = ""
 
-  local s = "["
+  local s = ""
   for _, value in pairs(tbl) do
     s = s .. separator .. tostring(value)
     separator = sep
   end
 
-  return s .. "]"
+  return s .. ""
 end
 
 ---@param tbl string[]
