@@ -76,6 +76,7 @@ function Grid:__tostring()
     end
   end
 
+  max_size = 1
   local str = ""
   local linesep = ""
   for y = 1, self.ymax do
@@ -84,7 +85,7 @@ function Grid:__tostring()
     for x = 1, self.xmax do
       local displayed = strings:at(x, y)
       local pad_dist = max_size - #displayed
-      for i = 1, pad_dist do
+      for _ = 1, pad_dist do
         line = line .. " "
       end
       line = line .. sep .. displayed

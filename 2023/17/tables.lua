@@ -4,6 +4,13 @@ function M.is_array(tbl)
   return tbl[1] ~= nil
 end
 
+function M.is_empty(tbl)
+  for _, _ in pairs(tbl) do
+    return false
+  end
+  return true
+end
+
 ---serialize a value
 ---@param o any
 ---@return string
@@ -63,7 +70,7 @@ function M.sum(tbl)
   return s
 end
 
-local function first_value(tbl)
+function M.first_value(tbl)
   for _, value in pairs(tbl) do
     return value
   end
@@ -75,7 +82,7 @@ end
 ---@param default number
 ---@return number
 function M.min(tbl, default)
-  local m = first_value(tbl) or default
+  local m = M.first_value(tbl) or default
 
   for _, v in pairs(tbl) do
     if m > v then
@@ -90,7 +97,7 @@ end
 ---@param default number
 ---@return number
 function M.max(tbl, default)
-  local m = first_value(tbl) or default
+  local m = M.first_value(tbl) or default
 
   for _, v in pairs(tbl) do
     if m < v then
